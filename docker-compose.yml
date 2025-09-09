@@ -14,7 +14,6 @@ services:
       - STATE=${STATE:-run}   # valeur par défaut = run
     volumes:
       - app-data:/data
-    working_dir: /data/app
     command: >
       sh -lc '
       case "$STATE" in
@@ -22,10 +21,10 @@ services:
           rm -rf /data/app && npx adapt-security/at-utils install --prerelease /data/app
           ;;
         update)
-          npx adapt-security/at-utils update --prerelease .
+          cd /data/app && npx adapt-security/at-utils update --prerelease .
           ;;
         run|*)
-          npm start
+          cd /data/app && npm start
           ;;
       esac
       '
