@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   mongo:
     image: mongo:6.0
@@ -7,70 +5,33 @@ services:
     volumes:
       - mongo-data:/data/db
 
-  # Phase d'installation - UI sur 8080 pour config initiale
-  adapt-install:
-    build: .
-    profiles: ["install"]
-    depends_on:
-      - mongo
-    environment:
-      - NODE_ENV=production
-    ports:
-      - "3500:8080"
-    volumes:
-      - app-data:/data
-    command: >
-      sh -lc "rm -rf /data/app; npx adapt-security/at-utils install --prerelease /data/app"
-    restart: "no"
-
-  # Phase de run - lance l'app déjà installée
   adapt:
     build: .
-    profiles: ["run"]
     depends_on:
       - mongo
     environment:
       - NODE_ENV=production
+      - STATE=${STATE:-run}   # valeur par défaut = run
     ports:
       - "3500:8080"
     volumes:
       - app-data:/data
     working_dir: /data/app
     command: >
-      sh -lc "npm start"
+      sh -lc '
+      case "$STATE" in
+        install)
+          rm -rf /data/app && npx adapt-security/at-utils install --prerelease /data/app
+          ;;
+        update)
+          npx adapt-security/at-utils update --prerelease .
+          ;;
+        run|*)
+          npm start
+          ;;
+      esac
+      '
     restart: unless-stopped
-
-  # Phase de mise à jour
-  adapt-update:
-    build: .
-    profiles: ["update"]
-    depends_on:
-      - mongo
-    environment:
-      - NODE_ENV=production
-    ports:
-      - "3500:8080"
-    volumes:
-      - app-data:/data
-    working_dir: /data/app
-    command: >
-      sh -lc "npx adapt-security/at-utils update --prerelease ."
-    restart: "no"
-
-  # Initialisation super user
-  adapt-init-super:
-    build: .
-    profiles: ["init-super"]
-    depends_on:
-      - mongo
-    environment:
-      - NODE_ENV=production
-    volumes:
-      - app-data:/data
-    working_dir: /data/app
-    command: >
-      sh -lc "echo 'poplpopl' | npx adapt-security/at-utils register-super --super-email stani@eduvia.app --pipe-passwd --ignore-prereqs --verbose"
-    restart: "no"
 
 volumes:
   mongo-data:
