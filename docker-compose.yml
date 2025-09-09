@@ -12,8 +12,6 @@ services:
     environment:
       - NODE_ENV=production
       - STATE=${STATE:-run}   # valeur par défaut = run
-    ports:
-      - "3500:8080"
     volumes:
       - app-data:/data
     working_dir: /data/app
