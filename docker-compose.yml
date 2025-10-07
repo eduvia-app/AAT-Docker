@@ -18,7 +18,7 @@ services:
       sh -lc '
       case "$STATE" in
         install)
-          rm -rf /data/app && npx adapt-security/at-utils install --prerelease /data/app
+          rm -rf /data/app && echo poplpopl | npx adapt-security/at-utils install --prerelease -e stani@eduvia.app -p /data/app
           ;;
         update)
           cd /data/app && npx adapt-security/at-utils update --prerelease .
