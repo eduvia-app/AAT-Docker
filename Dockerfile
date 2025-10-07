@@ -1,5 +1,5 @@
 # Image Node 22
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Outils utiles pour certaines dépendances natives et git
 RUN apk add --no-cache \
