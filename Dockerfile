@@ -25,13 +25,16 @@ ARG GITHUB_TOKEN
 # Si GITHUB_TOKEN est fourni, on l injecte temporairement dans l URL git pendant l install,
 # puis on nettoie la config. Note: le token peut apparaître dans l historique de layer.
 RUN set -eux; \
+    apk add --no-cache ca-certificates curl; \
+    URL_WITH_TOKEN="https://api.github.com/repos/adapt-security/at-utils/tarball/v0.10.0"; \
+    URL_PUBLIC="https://codeload.github.com/adapt-security/at-utils/tar.gz/refs/tags/v0.10.0"; \
     if [ -n "${GITHUB_TOKEN:-}" ]; then \
-      git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"; \
+      curl -fSL -H "Authorization: Bearer ${GITHUB_TOKEN}" -o /tmp/at-utils.tgz "$URL_WITH_TOKEN"; \
+    else \
+      curl -fSL -o /tmp/at-utils.tgz "$URL_PUBLIC"; \
     fi; \
-    npm i -g github:adapt-security/at-utils@0.10.0; \
-    if [ -n "${GITHUB_TOKEN:-}" ]; then \
-      git config --global --unset-all url."https://${GITHUB_TOKEN}@github.com/".insteadof || true; \
-    fi
+    npm i -g /tmp/at-utils.tgz; \
+    rm -f /tmp/at-utils.tgz
 
 # Dossier de travail persistant où l install déposera l app
 WORKDIR /data
