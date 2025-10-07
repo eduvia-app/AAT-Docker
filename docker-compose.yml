@@ -4,11 +4,17 @@ services:
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   adapt:
     build: .
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
       - NODE_ENV=production
       - STATE=${STATE:-run}   # valeur par défaut = run
@@ -18,10 +24,14 @@ services:
       sh -lc '
       case "$STATE" in
         install)
-          rm -rf /data/app && echo poplpopl | npx adapt-security/at-utils install --prerelease -e stani@eduvia.app -p /data/app
+          rm -rf /data/app &&
+          {
+            printf "poplpopl\n";
+            yes "";
+          } | npx adapt-security/at-utils install --prerelease -e stani@eduvia.app -p /data/app --verbose
           ;;
         update)
-          cd /data/app && npx adapt-security/at-utils update --prerelease .
+          cd /data/app && npx adapt-security/at-utils update --prerelease . --verbose
           ;;
         run|*)
           cd /data/app && npm start
