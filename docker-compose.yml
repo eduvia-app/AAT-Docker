@@ -18,6 +18,7 @@ services:
     environment:
       - NODE_ENV=production
       - STATE=${STATE:-run}   # valeur par défaut = run
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
     volumes:
       - app-data:/data
     command: >
